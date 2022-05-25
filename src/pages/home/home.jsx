@@ -2,6 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion'
 import EventEmitter from 'events'
 
+import FrameTable from '../../frameTable/frameTable';
+import PageTable from '../../components/pageTable/pageTable';
+import PaginationTable from '../../components/paginationTable/paginationTable';
+import MemoryRepresentation from '../../components/memoryRepresentation/memoryRepresentation';
+import DiskRepresentation from '../../components/diskRepresentation/diskRepresentation';
+import DataForm from '../../components/dataForm/dataForm';
+
 import './home.scss'
 
 function Home(props) {
@@ -152,27 +159,55 @@ function Home(props) {
         return found ? true : false;
     }
 
-    const handleClick = () => {
+    function ValidateForm() {
         const frameSize = parseInt(document.getElementById('frameSize').value)
-        setFrameSize(frameSize);
-
         const framesNumber = parseInt(document.getElementById('framesNumber').value)
-        setTotalFrames(new Array(framesNumber).fill("x"))
-
         const SOSize = document.getElementById('SOSize').value;
-        setFrames(new Array(Math.floor(framesNumber - SOSize / frameSize)).fill("x"))
-        processSize = document.getElementById('processSize').value;
+        const processSize = document.getElementById('processSize').value;
+        const directions = document.getElementById('directions').value;
 
-        const numPages = Math.ceil(processSize / frameSize)
-        const diskSize = document.getElementById('diskSize').value;
-        setTotalPages(new Array(Math.ceil(diskSize / frameSize)).fill("x"))
+        return (frameSize && framesNumber && SOSize && processSize && directions) ? true : false;
+    }
 
-        setPages(new Array(numPages).fill(0));
-        setFrameAsigned(new Array(numPages).fill(""));
-        setValid(new Array(numPages).fill(0));
-        setModified(new Array(numPages).fill(0));
-        setUsageTimes(new Array(numPages).fill(0));
-        setStart(true);
+    function isValidSOSize() {
+        const SOSize = document.getElementById('SOSize').value;
+        const frameSize = parseInt(document.getElementById('frameSize').value)
+        const framesNumber = parseInt(document.getElementById('framesNumber').value);
+
+        return Math.ceil(SOSize / frameSize) < framesNumber ? true : false
+    }
+
+    const handleClick = () => {
+        if (ValidateForm()) {
+            const frameSize = parseInt(document.getElementById('frameSize').value)
+            const framesNumber = parseInt(document.getElementById('framesNumber').value)
+            const SOSize = document.getElementById('SOSize').value;
+
+
+            if (isValidSOSize()) {
+                setFrameSize(frameSize);
+                setTotalFrames(new Array(framesNumber).fill("x"));
+                setFrames(new Array(Math.floor(framesNumber - SOSize / frameSize)).fill("x"))
+
+                processSize = document.getElementById('processSize').value;
+
+                const numPages = Math.ceil(processSize / frameSize)
+                const diskSize = document.getElementById('diskSize').value;
+                setTotalPages(new Array(Math.ceil(diskSize / frameSize)).fill("x"))
+
+                setPages(new Array(numPages).fill(0));
+                setFrameAsigned(new Array(numPages).fill(""));
+                setValid(new Array(numPages).fill(0));
+                setModified(new Array(numPages).fill(0));
+                setUsageTimes(new Array(numPages).fill(0));
+                setStart(true);
+            } else {
+                alert(`El tamaño del sistema operativo debe ser menor a ${frameSize * (framesNumber-1)}`);
+            }
+
+        } else {
+            alert("Debe diligenciar todos los campos");
+        }
     }
 
     async function showFile(e) {
@@ -192,37 +227,10 @@ function Home(props) {
 
     return (
         <div className='container'>
-            <div className='form-container'>
-                <form>
-                    <div className='form-group'>
-                        <label htmlFor="frameSize">Tamaño del marco</label>
-                        <input id="frameSize" type="number" name='frameSize' placeholder='Ingrese el tamaño del marco'></input>
-                    </div>
-                    <div className='form-group'>
-                        <label htmlFor="SOSize">Tamaño del sistema operativo</label>
-                        <input id="SOSize" type="number" name='SOSize' placeholder='Ingrese el tamaño del Sistema operativo'></input>
-                    </div>
-                    <div className='form-group'>
-                        <label htmlFor='processSize'>Tamaño del proceso</label>
-                        <input id="processSize" type="number" name='processSize' placeholder='Ingrese el tamaño del proceso'></input>
-                    </div>
-                    <div className='form-group'>
-                        <label htmlFor='diskSize'>Tamaño del disco</label>
-                        <input id="diskSize" type="number" name='diskSize' placeholder='Ingrese el tamaño del disco'></input>
-                    </div>
-                    <div className='form-group'>
-                        <label htmlFor="directions">Direcciones del proceso</label>
-                        <input id="directions" name="directions" onChange={(e) => showFile(e)} type="file" placeholder='Direcciones del proceso' />
-                    </div>
-                    <div className='form-group'>
-                        <label htmlFor="framesNumber">Número de marcos</label>
-                        <input id="framesNumber" name="framesNumber" type="number" placeholder='Ingrese el número de marcos' />
-                    </div>
-                    <div className='form-group submit-container'>
-                        <button className='btn btn-large btn-success' onClick={handleClick} type='button'>Enviar</button>
-                    </div>
-                </form>
-            </div>
+            <DataForm
+                handleClick={handleClick}
+                showFile={showFile}
+            />
 
             {
                 start ?
@@ -234,149 +242,47 @@ function Home(props) {
                         <div>
                             <p><b>Fallos de página: </b> {pageFail}</p>
                         </div>
+
                         <div>
                             <p><b>Reemplazos: </b> {pageFail - frames.length > 0 ? pageFail - frames.length : 0}</p>
                         </div>
+
                         <div>
-                            <table>
-                                <thead>
-                                    <th>Dir Lógica</th>
-                                    {
-                                        directions.map(dir => <th>{dir}</th>)
-                                    }
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>Lect / Escri </td>
-                                        {
-                                            operations.map(operation => <td>{operation}</td>)
-                                        }
-                                    </tr>
-                                    <tr>
-                                        <td>Núm pag</td>
-                                        {
-                                            pageNumbers.map((dir, index) => <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{dir}</motion.td>)
-                                        }
-                                    </tr>
-                                    <tr>
-                                        <td>Núm Marco</td>
-                                        {
-                                            frameNumbers.map((dir, index) => <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{dir}</motion.td>)
-                                        }
-                                    </tr>
-                                    <tr>
-                                        <td>Dir Fisica</td>
-                                        {
-                                            fisDirs.map((dir, index) => <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{dir}</motion.td>)
-                                        }
-                                    </tr>
-                                    <tr>
-                                        <td>Swap In</td>
-                                        {
-                                            swapIns.map((dir, index) => <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{dir}</motion.td>)
-                                        }
-                                    </tr>
-                                    <tr>
-                                        <td>Swap Out</td>
-                                        {
-                                            swapOuts.map((dir, index) => <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{dir}</motion.td>)
-                                        }
-                                    </tr>
-                                </tbody>
-                            </table>
+                            <PaginationTable
+                                directions={directions}
+                                operations={operations}
+                                pageNumbers={pageNumbers}
+                                frameNumbers={frameNumbers}
+                                fisDirs={fisDirs}
+                                swapIns={swapIns}
+                                swapOuts={swapOuts}
+                            />
                         </div>
 
-
                         <div className='table-container'>
-                            <h3>Tabla de páginas</h3>
-                            <table>
-                                <thead>
-                                    <th>
-                                        Número de página
-                                    </th>
-                                    <th>
-                                        Número de marco
-                                    </th>
-                                    <th>
-                                        Bit de válido
-                                    </th>
-                                    <th>
-                                        Bit de modificado
-                                    </th>
-                                    <th>
-                                        Tiempo de utilización (ms)
-                                    </th>
-                                </thead>
-                                <tbody>
-                                    {
-                                        pages.map((page, index) => {
-                                            return (
-                                                <tr>
-                                                    <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{index}</motion.td>
-                                                    <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{frameAsigned[index]}</motion.td>
-                                                    <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{valid[index]}</motion.td>
-                                                    <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{modified[index]}</motion.td>
-                                                    <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{usageTimes[index]}</motion.td>
-                                                </tr>
-                                            )
-                                        })
-                                    }
-                                </tbody>
-                            </table>
-
+                            <PageTable
+                                pages={pages}
+                                variants={variants}
+                                frameAsigned={frameAsigned}
+                                valid={valid}
+                                modified={modified}
+                                usageTimes={usageTimes}
+                            />
+                            <FrameTable
+                                frames={frames}
+                                variants={variants}
+                            />
                         </div>
                         <div className='table-container'>
-
-                            <h3>Tabla de marcos</h3>
-                            <table>
-                                <thead>
-                                    <th>
-                                        Número de marco
-                                    </th>
-
-                                    <th>
-                                        Número de página
-                                    </th>
-                                </thead>
-
-                                <tbody>
-                                    {
-                                        frames.map((frame, index) => (
-                                            <tr>
-                                                <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{index}</motion.td>
-                                                <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{frame}</motion.td>
-                                            </tr>
-                                        ))
-                                    }
-                                </tbody>
-                            </table>
-
                             <div className='table-container representations-container'>
-                                <div className='representation-container'>
-                                    <h3>Representación de la memoria principal</h3>
-                                    <div className='memory-container' style={{ height: 400 + 'px', width: 80 + 'px' }}>
-                                        {
-                                            totalFrames.map((frame, index) => (
-                                                index < frames.length ?
-                                                    <div className='frame' style={{ height: 400 / totalFrames.length + 'px', width: 80 + 'px', backgroundColor: frames[index] != "x" ? "red" : "none" }}>{frames[index] != "x" ? frames[index] : ""}</div>
-                                                    : <div className='frame frame-so' style={{ height: 400 / totalFrames.length + 'px', width: 80 + 'px' }}>{index} </div>
-                                            ))
-                                        }
-                                    </div>
-                                </div>
-
-                                <div className='representation-container'>
-                                    <h3>Representación del disco</h3>
-                                    <div className='disk-container' style={{ height: 400 + 'px', width: 80 + 'px' }}>
-                                        {
-                                            totalPages.map((frame, index) => (
-                                                index < pages.length ?
-                                                    <div className='page' style={{ height: 400 / totalPages.length + 'px', width: 80 + 'px' }}>{index}</div>
-                                                    : <div className='page free-page' style={{ height: 400 / totalPages.length + 'px', width: 80 + 'px' }}>{index}</div>
-                                            ))
-                                        }
-                                    </div>
-                                </div>
+                                <MemoryRepresentation
+                                    totalFrames={totalFrames}
+                                    frames={frames}
+                                />
+                                <DiskRepresentation
+                                    totalPages={totalPages}
+                                    pages={pages}
+                                />
                             </div>
                         </div>
 
@@ -395,7 +301,6 @@ function Home(props) {
 
                         </div>
                     </div> : <div></div>
-                
             }
 
         </div>
