@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion'
 import EventEmitter from 'events'
 
-import './home.css'
+import './home.scss'
 
 function Home(props) {
     const [directions, setDirections] = useState([]);
@@ -34,6 +34,8 @@ function Home(props) {
 
     const [totalFrames, setTotalFrames] = useState([]);
     const [totalPages, setTotalPages] = useState([]);
+
+    const [start, setStart] = useState(false);
 
     let processSize = 0;
 
@@ -133,19 +135,19 @@ function Home(props) {
     )
 
     function isPageOnFrames(pageNumber) {
-        const found = frames.find(frame => frame == pageNumber)
+        const found = frames.find(frame => frame === pageNumber)
 
-        return found ? true : false
+        return found != undefined ? true : false
     }
 
     function getFrameNumber(page) {
-        const number = frames.findIndex(frame => frame == page)
+        const number = frames.findIndex(frame => frame === page)
 
         return number;
     }
 
     function isPage(pageNumber) {
-        const found = pages.find(page => page == pageNumber);
+        const found = pages.find(page => page === pageNumber);
 
         return found ? true : false;
     }
@@ -158,23 +160,33 @@ function Home(props) {
         setTotalFrames(new Array(framesNumber).fill("x"))
 
         const SOSize = document.getElementById('SOSize').value;
-        setFrames(new Array(framesNumber - SOSize / frameSize).fill("x"))
+        setFrames(new Array(Math.floor(framesNumber - SOSize / frameSize)).fill("x"))
         processSize = document.getElementById('processSize').value;
 
         const numPages = Math.ceil(processSize / frameSize)
-        const diskSize =  document.getElementById('diskSize').value;
-        setTotalPages(new Array(Math.floor(diskSize/frameSize)).fill("x"))
+        const diskSize = document.getElementById('diskSize').value;
+        setTotalPages(new Array(Math.ceil(diskSize / frameSize)).fill("x"))
 
         setPages(new Array(numPages).fill(0));
         setFrameAsigned(new Array(numPages).fill(""));
         setValid(new Array(numPages).fill(0));
         setModified(new Array(numPages).fill(0));
         setUsageTimes(new Array(numPages).fill(0));
+        setStart(true);
+    }
 
-        setDirections(document.getElementById('directions').value);
+    async function showFile(e) {
+        e.preventDefault()
+        const reader = new FileReader()
+        reader.onload = async (e) => {
+            const lines = (e.target.result).split("\n")
+            const directions = lines[0].split(",");
+            const operations = lines[1].split(",");
 
-        setDirections([21, 26, 25, 6, 5, 29, 4, 5, 17, 16, 24, 25, 4, 7, 21, 1, 14, 15, 21, 22]);
-        setOperations(["L", "L", "E", "E", "L", "L", "L", "E", "E", "E", "E", "L", "E", "L", "E", "E", "L", "L", "E", "E"]);
+            setDirections(directions)
+            setOperations(operations)
+        };
+        reader.readAsText(e.target.files[0])
     }
 
 
@@ -200,178 +212,192 @@ function Home(props) {
                     </div>
                     <div className='form-group'>
                         <label htmlFor="directions">Direcciones del proceso</label>
-                        <input id="directions" name="directions" type="file" placeholder='Direcciones del proceso' />
+                        <input id="directions" name="directions" onChange={(e) => showFile(e)} type="file" placeholder='Direcciones del proceso' />
                     </div>
                     <div className='form-group'>
                         <label htmlFor="framesNumber">Número de marcos</label>
                         <input id="framesNumber" name="framesNumber" type="number" placeholder='Ingrese el número de marcos' />
                     </div>
                     <div className='form-group submit-container'>
-                        <button onClick={handleClick} type='button'>Enviar</button>
+                        <button className='btn btn-large btn-success' onClick={handleClick} type='button'>Enviar</button>
                     </div>
                 </form>
             </div>
 
-            <div>
-                <button onClick={() => eventEmitter.emit('next')}>Siguiente</button>
-            </div>
+            {
+                start ?
+                    <div className='container'>
+                        <div>
+                            <button onClick={() => eventEmitter.emit('next')}>Siguiente</button>
+                        </div>
 
-            <div>
-                <p><b>Fallos de página: </b> {pageFail}</p>
-            </div>
-            <div>
-                <p><b>Reemplazos: </b> {pageFail - frames.length > 0 ? pageFail - frames.length : 0}</p>
-            </div>
-            <div>
-                <table>
-                    <thead>
-                        <th>Dir Lógica</th>
-                        {
-                            directions.map(dir => <th>{dir}</th>)
-                        }
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Lect / Escri </td>
-                            {
-                                operations.map(operation => <td>{operation}</td>)
-                            }
-                        </tr>
-                        <tr>
-                            <td>Núm pag</td>
-                            {
-                                pageNumbers.map((dir, index) => <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{dir}</motion.td>)
-                            }
-                        </tr>
-                        <tr>
-                            <td>Núm Marco</td>
-                            {
-                                frameNumbers.map((dir, index) => <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{dir}</motion.td>)
-                            }
-                        </tr>
-                        <tr>
-                            <td>Dir Fisica</td>
-                            {
-                                fisDirs.map((dir, index) => <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{dir}</motion.td>)
-                            }
-                        </tr>
-                        <tr>
-                            <td>Swap In</td>
-                            {
-                                swapIns.map((dir, index) => <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{dir}</motion.td>)
-                            }
-                        </tr>
-                        <tr>
-                            <td>Swap Out</td>
-                            {
-                                swapOuts.map((dir, index) => <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{dir}</motion.td>)
-                            }
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-
-            <div className='page-table-container'>
-                <h3>Tabla de páginas</h3>
-                <table>
-                    <thead>
-                        <th>
-                            Número de página
-                        </th>
-                        <th>
-                            Número de marco
-                        </th>
-                        <th>
-                            Bit de válido
-                        </th>
-                        <th>
-                            Bit de modificado
-                        </th>
-                        <th>
-                            Tiempo de utilización (ms)
-                        </th>
-                    </thead>
-                    <tbody>
-                        {
-                            pages.map((page, index) => {
-                                return (
+                        <div>
+                            <p><b>Fallos de página: </b> {pageFail}</p>
+                        </div>
+                        <div>
+                            <p><b>Reemplazos: </b> {pageFail - frames.length > 0 ? pageFail - frames.length : 0}</p>
+                        </div>
+                        <div>
+                            <table>
+                                <thead>
+                                    <th>Dir Lógica</th>
+                                    {
+                                        directions.map(dir => <th>{dir}</th>)
+                                    }
+                                </thead>
+                                <tbody>
                                     <tr>
-                                        <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{index}</motion.td>
-                                        <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{frameAsigned[index]}</motion.td>
-                                        <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{valid[index]}</motion.td>
-                                        <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{modified[index]}</motion.td>
-                                        <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{usageTimes[index]}</motion.td>
+                                        <td>Lect / Escri </td>
+                                        {
+                                            operations.map(operation => <td>{operation}</td>)
+                                        }
                                     </tr>
-                                )
-                            })
-                        }
-                    </tbody>
-                </table>
+                                    <tr>
+                                        <td>Núm pag</td>
+                                        {
+                                            pageNumbers.map((dir, index) => <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{dir}</motion.td>)
+                                        }
+                                    </tr>
+                                    <tr>
+                                        <td>Núm Marco</td>
+                                        {
+                                            frameNumbers.map((dir, index) => <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{dir}</motion.td>)
+                                        }
+                                    </tr>
+                                    <tr>
+                                        <td>Dir Fisica</td>
+                                        {
+                                            fisDirs.map((dir, index) => <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{dir}</motion.td>)
+                                        }
+                                    </tr>
+                                    <tr>
+                                        <td>Swap In</td>
+                                        {
+                                            swapIns.map((dir, index) => <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{dir}</motion.td>)
+                                        }
+                                    </tr>
+                                    <tr>
+                                        <td>Swap Out</td>
+                                        {
+                                            swapOuts.map((dir, index) => <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{dir}</motion.td>)
+                                        }
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
 
-            </div>
-            <div className='frames-container'>
 
-                <h3>Tabla de marcos</h3>
-                <table>
-                    <thead>
-                        <th>
-                            Número de marco
-                        </th>
+                        <div className='table-container'>
+                            <h3>Tabla de páginas</h3>
+                            <table>
+                                <thead>
+                                    <th>
+                                        Número de página
+                                    </th>
+                                    <th>
+                                        Número de marco
+                                    </th>
+                                    <th>
+                                        Bit de válido
+                                    </th>
+                                    <th>
+                                        Bit de modificado
+                                    </th>
+                                    <th>
+                                        Tiempo de utilización (ms)
+                                    </th>
+                                </thead>
+                                <tbody>
+                                    {
+                                        pages.map((page, index) => {
+                                            return (
+                                                <tr>
+                                                    <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{index}</motion.td>
+                                                    <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{frameAsigned[index]}</motion.td>
+                                                    <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{valid[index]}</motion.td>
+                                                    <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{modified[index]}</motion.td>
+                                                    <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{usageTimes[index]}</motion.td>
+                                                </tr>
+                                            )
+                                        })
+                                    }
+                                </tbody>
+                            </table>
 
-                        <th>
-                            Número de página
-                        </th>
-                    </thead>
+                        </div>
+                        <div className='table-container'>
 
-                    <tbody>
-                        {
-                            frames.map((frame, index) => (
-                                <tr>
-                                    <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{index}</motion.td>
-                                    <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{frame}</motion.td>
-                                </tr>
-                            ))
-                        }
-                    </tbody>
-                </table>
+                            <h3>Tabla de marcos</h3>
+                            <table>
+                                <thead>
+                                    <th>
+                                        Número de marco
+                                    </th>
 
-                <h3>Representación de la memoria principal</h3>
-                <div className='memory-container' style={{ height: 400 + 'px', width: 80 + 'px' }}>
-                    {
-                        totalFrames.map((frame, index) => (
-                            index < frames.length ?
-                                <div className='frame' style={{ height: 400 / totalFrames.length + 'px', width: 80 + 'px', backgroundColor: frames[index] != "x" ? "red" : "none" }}>{frames[index] != "x" ? frames[index] : ""}</div>
-                                : <div className='frame frame-so' style={{ height: 400 / totalFrames.length + 'px', width: 80 + 'px' }}>{index} </div>
-                        ))
-                    }
-                </div>
+                                    <th>
+                                        Número de página
+                                    </th>
+                                </thead>
 
-                <h3>Representación del disco</h3>
-                <div className='disk-container' style={{ height: 400 + 'px', width: 80 + 'px' }}>
-                    {
-                        totalPages.map((frame, index) => (
-                            index < pages.length ?
-                                <div className='page' style={{ height: 400 / totalFrames.length + 'px', width: 80 + 'px'}}>{index}</div>
-                                : <div className='page free-page' style={{ height: 400 / totalFrames.length + 'px', width: 80 + 'px' }}>{index}</div>
-                        ))
-                    }
-                </div>
-            </div>
+                                <tbody>
+                                    {
+                                        frames.map((frame, index) => (
+                                            <tr>
+                                                <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{index}</motion.td>
+                                                <motion.td initial="hidden" animate="visible" variants={variants} transition={{ duration: 1 }}>{frame}</motion.td>
+                                            </tr>
+                                        ))
+                                    }
+                                </tbody>
+                            </table>
 
-            <div>
-                {
-                    log.map((log, index) => {
-                        return (
-                            <div>
-                                <p><b>Número de iteración: </b> {index}</p>
-                                <p style={{ "white-space": "pre-line" }}>{log}</p>
+                            <div className='table-container representations-container'>
+                                <div className='representation-container'>
+                                    <h3>Representación de la memoria principal</h3>
+                                    <div className='memory-container' style={{ height: 400 + 'px', width: 80 + 'px' }}>
+                                        {
+                                            totalFrames.map((frame, index) => (
+                                                index < frames.length ?
+                                                    <div className='frame' style={{ height: 400 / totalFrames.length + 'px', width: 80 + 'px', backgroundColor: frames[index] != "x" ? "red" : "none" }}>{frames[index] != "x" ? frames[index] : ""}</div>
+                                                    : <div className='frame frame-so' style={{ height: 400 / totalFrames.length + 'px', width: 80 + 'px' }}>{index} </div>
+                                            ))
+                                        }
+                                    </div>
+                                </div>
+
+                                <div className='representation-container'>
+                                    <h3>Representación del disco</h3>
+                                    <div className='disk-container' style={{ height: 400 + 'px', width: 80 + 'px' }}>
+                                        {
+                                            totalPages.map((frame, index) => (
+                                                index < pages.length ?
+                                                    <div className='page' style={{ height: 400 / totalPages.length + 'px', width: 80 + 'px' }}>{index}</div>
+                                                    : <div className='page free-page' style={{ height: 400 / totalPages.length + 'px', width: 80 + 'px' }}>{index}</div>
+                                            ))
+                                        }
+                                    </div>
+                                </div>
                             </div>
-                        )
-                    })
-                }
+                        </div>
 
-            </div>
+
+                        <div>
+                            {
+                                log.map((log, index) => {
+                                    return (
+                                        <div>
+                                            <p><b>Número de iteración: </b> {index}</p>
+                                            <p style={{ "white-space": "pre-line" }}>{log}</p>
+                                        </div>
+                                    )
+                                })
+                            }
+
+                        </div>
+                    </div> : <div></div>
+                
+            }
+
         </div>
     )
 }
