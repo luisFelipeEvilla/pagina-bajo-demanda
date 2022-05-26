@@ -9,7 +9,7 @@ function DiskRepresentation(props) {
                     props.totalPages.map((frame, index) => (
                         index < props.pages.length ?
                             <div className='page' style={{ height: 400 / props.totalPages.length + 'px', width: 80 + 'px' }}>{index}</div>
-                            : <div className='page free-page' style={{ height: 400 / props.totalPages.length + 'px', width: 80 + 'px' }}>{index}</div>
+                            : <div className='page free-page' style={{ height: 400 / props.totalPages.length + 'px', width: 80 + 'px' }}></div>
                     ))
                 }
             </div>
