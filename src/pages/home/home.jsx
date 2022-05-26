@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion'
 import EventEmitter from 'events'
 
-import FrameTable from '../../frameTable/frameTable';
+import FrameTable from '../../components/frameTable/frameTable';
 import PageTable from '../../components/pageTable/pageTable';
 import PaginationTable from '../../components/paginationTable/paginationTable';
 import MemoryRepresentation from '../../components/memoryRepresentation/memoryRepresentation';
 import DiskRepresentation from '../../components/diskRepresentation/diskRepresentation';
 import DataForm from '../../components/dataForm/dataForm';
+import Modal from '../../components/modal/modal';
 
 import './home.scss'
 
@@ -43,6 +44,7 @@ function Home(props) {
     const [totalPages, setTotalPages] = useState([]);
 
     const [start, setStart] = useState(false);
+    const [message, setMessage] = useState("");
 
     let processSize = 0;
 
@@ -201,8 +203,11 @@ function Home(props) {
                 setModified(new Array(numPages).fill(0));
                 setUsageTimes(new Array(numPages).fill(0));
                 setStart(true);
+
+                const diskRepresentation = document.getElementById('diskRepresentation');
+                diskRepresentation.focus()
             } else {
-                alert(`El tamaño del sistema operativo debe ser menor a ${frameSize * (framesNumber-1)}`);
+                alert(`El tamaño del sistema operativo debe ser menor a ${frameSize * (framesNumber - 1)}`);
             }
 
         } else {
@@ -227,16 +232,19 @@ function Home(props) {
 
     return (
         <div className='container'>
-            <DataForm
-                handleClick={handleClick}
-                showFile={showFile}
-            />
+            { !start ?
+                <DataForm
+                    handleClick={handleClick}
+                    showFile={showFile}
+                /> :
+                <div> </div>
+            }
 
             {
                 start ?
                     <div className='container'>
                         <div>
-                            <button onClick={() => eventEmitter.emit('next')}>Siguiente</button>
+                            <button className='btn btn-large btn-primary' onClick={() => eventEmitter.emit('next')}>Siguiente</button>
                         </div>
 
                         <div>
@@ -259,7 +267,12 @@ function Home(props) {
                             />
                         </div>
 
-                        <div className='table-container'>
+                        <div className='element-container'>
+                            <MemoryRepresentation
+                                totalFrames={totalFrames}
+                                frames={frames}
+                            />
+
                             <PageTable
                                 pages={pages}
                                 variants={variants}
@@ -268,22 +281,17 @@ function Home(props) {
                                 modified={modified}
                                 usageTimes={usageTimes}
                             />
+                        </div>
+                        <div className='element-container'>
+                            <DiskRepresentation
+                                totalPages={totalPages}
+                                pages={pages}
+                            />
                             <FrameTable
                                 frames={frames}
                                 variants={variants}
                             />
-                        </div>
-                        <div className='table-container'>
-                            <div className='table-container representations-container'>
-                                <MemoryRepresentation
-                                    totalFrames={totalFrames}
-                                    frames={frames}
-                                />
-                                <DiskRepresentation
-                                    totalPages={totalPages}
-                                    pages={pages}
-                                />
-                            </div>
+
                         </div>
 
 

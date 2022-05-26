@@ -1,3 +1,24 @@
+$fill-slot-color: #3A7E5D;
+$free-slot-color: white;
+
+$SO-frame: #81C5A4;
+
+@keyframes freeToFill {
+    from {background-color: $free-slot-color;}
+    to {background-color: $fill-slot-color;}
+}
+
+@keyframes fillToFree {
+    from {background-color: $fill-slot-color;}
+    to {background-color: $free-slot-color;}
+}
+
+@keyframes SOFreeToFree {
+    from {background-color: $free-slot-color;}
+    to {background-color: $SO-frame;}
+}
+
+
 .container {
     font-family: 'Oswald', sans-serif;
     display: flex;
@@ -11,6 +32,8 @@
     border-radius: 10px;
     padding: 30px 35px;
     margin: 40px 0;
+    -webkit-box-shadow: 5px 5px 15px -3px #000000;
+    box-shadow: 5px 5px 15px -3px #000000;
 }
 
 .form-group {
@@ -40,17 +63,76 @@
 
 
 .form-group button:hover {
-    scale: (1,1);
+    scale: (1, 1);
     cursor: pointer;
 }
 
+.element-container {
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+}
+
+.table-container {
+    text-align: center;
+    margin-left: 40px;
+}
+
+.representation-container {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+}
+
+.page {
+    background-color: $fill-slot-color;
+    color: white;
+    border: 1px solid black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: freeToFill 5s;
+}
+
+.free-page {
+    border: 1px solid black;
+    background-color: $free-slot-color;
+    color: black;
+}
+
+.free-frame, .frame, .frame-so {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid black;
+}
+
+.free-frame {
+    color: black;
+    animation: fillToFree 2s;
+    background-color: $free-slot-color;
+}
+
+.frame {
+    color: white;
+    animation: freeToFill 2s;
+    background-color: $fill-slot-color;
+}
+
+.frame-so {
+    background-color: $SO-frame;    
+    animation: SOFreeToFill 2s;
+}
+
+
 table {
     border: .5px solid gray;
-    -webkit-box-shadow: 5px 5px 15px -3px #000000; 
+    -webkit-box-shadow: 5px 5px 15px -3px #000000;
     box-shadow: 5px 5px 15px -3px #000000;
 }
 
-table thead, th {
+table thead,
+th {
     background-color: #000000;
     color: white;
 }
@@ -64,46 +146,4 @@ table td {
     font-size: large;
     text-align: center;
     padding: 10px;
-}
-
-.frame { 
-    display : flex;
-    align-items : center;
-    justify-content : center;
-    border: 1px solid black;
-    color: white
-}
-
-.frame-so {
-    background-color: blue;
-    border: 1px solid black;
-}
-
-.page {
-    background-color: red;
-    color: white;
-    border: 1px solid black;
-    display : flex;
-    align-items : center;
-    justify-content : center;
-}
-
-.free-page {
-    border: 1px solid black;
-    background-color: transparent;
-    color: black
-}
-
-.representations-container {
-    display: flex;
-}
-
-.representations-container .representation-container {
-    margin: 10px;
-    justify-content: center;
-    align-items: center;
-}
-
-.table-container {
-    text-align: center;
 }

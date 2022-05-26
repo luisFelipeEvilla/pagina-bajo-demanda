@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 function FrameTable(props) {
 
     return (
-        <div>
+        <div className="table-container">
             <h3>Tabla de marcos</h3>
             <table>
                 <thead>
@@ -22,7 +22,12 @@ function FrameTable(props) {
                         props.frames.map((frame, index) => (
                             <tr>
                                 <motion.td initial="hidden" animate="visible" variants={props.variants} transition={{ duration: 1 }}>{index}</motion.td>
-                                <motion.td initial="hidden" animate="visible" variants={props.variants} transition={{ duration: 1 }}>{frame}</motion.td>
+                                <motion.td
+                                    key={frame}
+                                    initial="hidden"
+                                    animate="visible"
+                                    variants={props.variants}
+                                    transition={{ duration: 1 }}>{frame}</motion.td>
                             </tr>
                         ))
                     }

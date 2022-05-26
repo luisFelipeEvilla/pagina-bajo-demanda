@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 
 function PageTable(props) {
     return (
-        <div>
+        <div className="table-container">
             <h3>Tabla de páginas</h3>
             <table>
                 <thead>
