@@ -179,6 +179,14 @@ function Home(props) {
         return Math.ceil(SOSize / frameSize) < framesNumber ? true : false
     }
 
+    function isEnterPressed(event) {
+        console.log(event);
+        if (event.key === "Enter") {
+            console.log("hola");
+            eventEmitter.emit('next')
+        }
+    }
+
     const handleClick = () => {
         if (ValidateForm()) {
             const frameSize = parseInt(document.getElementById('frameSize').value)
@@ -203,9 +211,6 @@ function Home(props) {
                     setModified(new Array(numPages).fill(0));
                     setUsageTimes(new Array(numPages).fill(0));
                     setStart(true);
-
-                    const diskRepresentation = document.getElementById('diskRepresentation');
-                    diskRepresentation.focus()
                 } else {
                     alert("El tamaño del proceso debe ser menor al tamaño del disco")
                 }
@@ -246,7 +251,7 @@ function Home(props) {
             {
                 start ?
                     <div className='container'>
-                        <div>
+                        <div id="nextButton">
                             <button className='btn btn-large btn-primary' onClick={() => eventEmitter.emit('next')}>Siguiente</button>
                         </div>
 
@@ -303,7 +308,7 @@ function Home(props) {
                                 log.map((log, index) => {
                                     return (
                                         <div>
-                                            <p><b>Número de iteración: </b> {index}</p>
+                                            <p><b>Tiempo: </b> {index}(ms)</p>
                                             <p style={{ "white-space": "pre-line" }}>{log}</p>
                                         </div>
                                     )
