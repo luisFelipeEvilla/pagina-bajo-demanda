@@ -184,28 +184,31 @@ function Home(props) {
             const frameSize = parseInt(document.getElementById('frameSize').value)
             const framesNumber = parseInt(document.getElementById('framesNumber').value)
             const SOSize = document.getElementById('SOSize').value;
-
+            processSize = document.getElementById('processSize').value;
+            const diskSize = document.getElementById('diskSize').value;
 
             if (isValidSOSize()) {
                 setFrameSize(frameSize);
                 setTotalFrames(new Array(framesNumber).fill("x"));
                 setFrames(new Array(Math.floor(framesNumber - SOSize / frameSize)).fill("x"))
 
-                processSize = document.getElementById('processSize').value;
+                if (processSize < diskSize) {
+                    const numPages = Math.ceil(processSize / frameSize)
 
-                const numPages = Math.ceil(processSize / frameSize)
-                const diskSize = document.getElementById('diskSize').value;
-                setTotalPages(new Array(Math.ceil(diskSize / frameSize)).fill("x"))
+                    setTotalPages(new Array(Math.ceil(diskSize / frameSize)).fill("x"))
 
-                setPages(new Array(numPages).fill(0));
-                setFrameAsigned(new Array(numPages).fill(""));
-                setValid(new Array(numPages).fill(0));
-                setModified(new Array(numPages).fill(0));
-                setUsageTimes(new Array(numPages).fill(0));
-                setStart(true);
+                    setPages(new Array(numPages).fill(0));
+                    setFrameAsigned(new Array(numPages).fill(""));
+                    setValid(new Array(numPages).fill(0));
+                    setModified(new Array(numPages).fill(0));
+                    setUsageTimes(new Array(numPages).fill(0));
+                    setStart(true);
 
-                const diskRepresentation = document.getElementById('diskRepresentation');
-                diskRepresentation.focus()
+                    const diskRepresentation = document.getElementById('diskRepresentation');
+                    diskRepresentation.focus()
+                } else {
+                    alert("El tamaño del proceso debe ser menor al tamaño del disco")
+                }
             } else {
                 alert(`El tamaño del sistema operativo debe ser menor a ${frameSize * (framesNumber - 1)}`);
             }
@@ -232,7 +235,7 @@ function Home(props) {
 
     return (
         <div className='container'>
-            { !start ?
+            {!start ?
                 <DataForm
                     handleClick={handleClick}
                     showFile={showFile}
