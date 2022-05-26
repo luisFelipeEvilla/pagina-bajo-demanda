@@ -210,7 +210,7 @@ function Home(props) {
                     alert("El tamaño del proceso debe ser menor al tamaño del disco")
                 }
             } else {
-                alert(`El tamaño del sistema operativo debe ser menor a ${frameSize * (framesNumber - 1)}`);
+                alert(`El tamaño del sistema operativo debe ser menor o igual a ${frameSize * (framesNumber - 1)}`);
             }
 
         } else {
